@@ -1,0 +1,17 @@
+{
+    "name": "wasm-file-md5",
+    "version": "1.0.0",
+    "description": "init",
+    "scripts": {
+        "build": "sh build.sh",
+        "test": "sh test.sh",
+        "server": "http-server ./"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/BoneShooter/wasm-file-md5.git"
+    },
+    "dependencies": {
+        "http-server": "^0.11.1"
+    }
+}

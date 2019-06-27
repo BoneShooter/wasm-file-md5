@@ -1,0 +1,115 @@
+<html>
+
+<head>
+    <title>
+        test cacl md5 with js and wasm
+    </title>
+    <style type="text/css">
+        .container {
+            min-height: 30px;
+        }
+
+        .container button,
+        .container span {
+            vertical-align: middle;
+            line-height: 20px;
+        }
+
+        textarea {
+            width: 90%;
+            height: 200px;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <h3>
+            <button onclick="calcStringMd5()">calcStringMd5</button>
+            string value:
+        </h3>
+        <p>
+            <textarea id="textarea-origin"></textarea>
+        </p>
+        <h3>
+            <button onclick="calcFileMd5()">calcFileMd5</button>
+            <button onclick="calcFileBufferMd5()">calcFileBufferMd5</button>
+            file value:
+        </h3>
+        <input id="inputFile" type="file" onchange="onSelectFile()" />
+        <img id="img" src="" style="width: 300px;display: none" />
+    </div>
+    <div>
+        <h3>result：</h3>
+        <p>
+            <textarea id="textarea-result"></textarea>
+        </p>
+    </div>
+    <script>
+        const textareaOrigin = document.getElementById('textarea-origin');
+        const textareaResult = document.getElementById('textarea-result');
+        const img = document.getElementById('img');
+        const inputFile = document.getElementById('inputFile');
+        textareaOrigin.value = 'hello world ! 你好 世界 ！';
+        const md5Worker = new Worker('js/worker.js');
+        md5Worker.onmessage = function ($event) {
+            const eventData = $event.data;
+            if (eventData.type === 'result') {
+                textareaResult.value = JSON.stringify(eventData, null, 4);
+            }
+        }
+        function setDataToWorker(data) {
+            md5Worker.postMessage(data);
+        }
+        function calcStringMd5() {
+            setDataToWorker({
+                type: 'string',
+                str: textareaOrigin.value
+            });
+        }
+        function calcFileMd5() {
+            const file = inputFile.files[0];
+            if (file) {
+                setDataToWorker({
+                    type: 'file',
+                    file: file
+                });
+            } else {
+                alert('please select file');
+            }
+        }
+        function calcFileBufferMd5() {
+            const file = inputFile.files[0];
+            if (file) {
+                const bufferReader = new FileReader();
+                bufferReader.onload = function ($event) {
+                    const ab = $event.target.result;
+                    setDataToWorker({
+                        type: 'buffer',
+                        buffer: ab
+                    });
+                }
+                bufferReader.readAsArrayBuffer(file);
+            } else {
+                alert('please select file');
+            }
+        }
+        function onSelectFile() {
+            const file = inputFile.files[0];
+            if (file && file.type.indexOf('image') > -1) {
+                // show img
+                const imageReader = new FileReader();
+                imageReader.onload = function () {
+                    const imageUrl = imageReader.result;
+                    img.src = imageUrl;
+                    img.style.display = 'block';
+                }
+                imageReader.readAsDataURL(file);
+            } else {
+                img.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+
+</html>
